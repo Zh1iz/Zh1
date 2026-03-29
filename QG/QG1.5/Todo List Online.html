@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List Online</title>
+  <link type="favicon" rel="shortcut icon" href="logo.png">
+  <link rel="stylesheet" href="Todo List Online.css">
+</head>
+
+<body>
+  <div class="nav">
+    <div class="body-top">
+      <div class="top-content">
+        <div class="github"><a href="https://github.com/ricocc/uiineed-todo-list" target="_blank"><img
+              src="github.svg"></a>
+        </div>
+        <div class="writer">Zh1</div>
+        <div class="lang">
+          <div class="en">En</div>
+          <div class="line">/</div>
+          <div class="zh">中</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="body-bottom">
+    <div class="add">
+      <div class="photo">
+        <img src="todo.svg">
+      </div>
+      <div class="input-area">
+        <select id="type-select">
+          <option value="学习">学习</option>
+          <option value="生活">生活</option>
+          <option value="工作">工作</option>
+        </select>
+        <input type="text" id="todo-input" placeholder="新增待办事项...">
+        <button id="submit-btn">提交</button>
+      </div>
+    </div>
+    <div class="all-box">
+      <div class="content">
+        <div class="box">
+          <div class="head">
+            <input type="button" value="全部标为完成" class="btn">
+            <div class="header">今日事今日毕，勿将今事待明日! ☕
+            </div>
+          </div>
+          <div class="body-content">
+            <div class="body-in">
+              <p class="tip">添加你的第一个待办事项! 📝</p>
+              <p class="tip-lip">食用方法 💡 :</p>
+              <ul class="tips">
+                <li>目前操作不支持Enter回车键提交哦</li>
+                <li>填写时间请换英文输入法喵</li>
+                <li>双击任务可进行编辑</li>
+                <li>原版本请见右上角喵喵喵</li>
+                <li>🔒 所有的Todo数据存储在浏览器本地</li>
+                <li>📝 支持下载和导入，导入追加到当前序列</li>
+              </ul>
+            </div>
+          </div>
+          <div class="box-bottom">
+            <div id="todo-footer" style="padding:10px 20px; border-top:1px solid #ddd;">
+              剩余 <span id="remaining-count">0</span> 项未完成
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="faster">
+        <button class="faster-btn">开✨</button>
+        <button class="faster-btn" id="showAllBtn">全部</button>
+        <button class="faster-btn" id="showRecycleBtn">回收站</button>
+        <button class="faster-btn">一键清空</button>
+        <button class="faster-btn">导入 (txt/json)</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:20px auto;width:fit-content;">
+        <button onclick="addCate()"
+          style="padding:8px 16px;border:2px solid #333;border-radius:8px;background:#fff;cursor:pointer">添加分类</button>
+        <button onclick="editCate()"
+          style="padding:8px 16px;border:2px solid #333;border-radius:8px;background:#fff;cursor:pointer">编辑分类</button>
+        <button onclick="delCate()"
+          style="padding:8px 16px;border:2px solid #333;border-radius:8px;background:#fff;cursor:pointer">删除分类</button>
+        <select id="cateFilter" onchange="filterCateChange(this.value)"
+          style="padding:8px 16px;border:2px solid #333;border-radius:8px;background:#fff;cursor:pointer">
+          <option value="all">全部分类</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <script>
+    let input = document.querySelector('.input-area')
+    let tdinput = document.querySelector('#todo-input')
+    tdinput.addEventListener('mouseenter', function () {
+      input.style.boxShadow = 'none'
+    })
+    tdinput.addEventListener('mouseleave', function () {
+      input.style.boxShadow = '4px 4px 0 #333'
+    })
+    let head = document.querySelector('.head')
+    head.addEventListener('mouseenter', function () {
+      head.style.background = '#F9F3E3'
+    })
+    head.addEventListener('mouseleave', function () {
+      head.style.background = 'white'
+    })
+    let bottom = document.querySelector('.box-bottom')
+    bottom.addEventListener('mouseenter', function () {
+      bottom.style.background = '#F9F3E3'
+    })
+    bottom.addEventListener('mouseleave', function () {
+      bottom.style.background = 'white'
+    })
+    let faster = document.querySelector('.faster')
+    faster.addEventListener('mouseenter', function () {
+      faster.style.boxShadow = 'none'
+    })
+    faster.addEventListener('mouseleave', function () {
+      faster.style.boxShadow = '2px 2px #333'
+    })
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
+    let recycleBin = JSON.parse(localStorage.getItem('recycleBin')) || [];
+    let categories = JSON.parse(localStorage.getItem('categories')) || ['学习', '生活', '工作'];
+    let currentView = 'all';
+    let filterCate = 'all';
+    let cateExpand = {};
+    categories.forEach(c => cateExpand[c] = true);
+
+    const todoInput = document.getElementById('todo-input');
+    const submitBtn = document.getElementById('submit-btn');
+    const typeSelect = document.getElementById('type-select');
+    const todoList = document.querySelector('.body-in');
+    const markAllBtn = document.querySelector('.box .btn');
+    const showAllBtn = document.querySelector('.faster-btn:nth-child(2)');
+    const showRecycleBtn = document.querySelector('.faster-btn:nth-child(3)');
+    const clearAllBtn = document.querySelector('.faster-btn:nth-child(4)');
+    const todoFooter = document.getElementById('todo-footer');
+    const remainingCount = document.getElementById('remaining-count');
+
+    const defaultHTML = todoList.innerHTML;
+
+    renderCate();
+    render();
+    bindEvents();
+    checkOverdue();
+    setInterval(checkOverdue, 5000);
+    setInterval(render, 5000);
+
+    function renderCate() {
+      typeSelect.innerHTML = '';
+      categories.forEach(c => {
+        let op = document.createElement('option');
+        op.value = c;
+        op.textContent = c;
+        typeSelect.appendChild(op);
+      });
+      renderCateFilter();
+    }
+
+    function renderCateFilter() {
+      let filter = document.getElementById('cateFilter');
+      if (!filter) return;
+      filter.innerHTML = '<option value="all">全部分类</option>';
+      categories.forEach(c => {
+        let op = document.createElement('option');
+        op.value = c;
+        op.textContent = c;
+        filter.appendChild(op);
+      });
+      filter.value = filterCate;
+    }
+
+    function render() {
+      todoList.innerHTML = '';
+      let remaining = todos.filter(item => !item.done).length;
+      if (remaining > 0) {
+        if (todoFooter) todoFooter.style.display = 'block';
+        updateFooter(remaining);
+      } else {
+        if (todoFooter) todoFooter.style.display = 'none';
+      }
+
+      if (currentView !== 'all') {
+        let list = recycleBin;
+        if (list.length === 0) {
+          todoList.innerHTML = defaultHTML;
+        } else {
+          list.forEach(item => {
+            let div = document.createElement('div');
+            div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;margin:8px 0;background:#fff;border-left:4px solid #999;border-radius:8px;position:relative;z-index:1;';
+            div.innerHTML = `<input type="checkbox" checked data-id="${item.id}"><div style="flex:1" data-id="${item.id}"><b>[${item.type}]</b> ${item.content}<span style="font-size:12px;color:#666;margin-left:8px">${item.deadline ? new Date(item.deadline).toLocaleString() : ''}</span></div><button data-id="${item.id}">恢复</button>`;
+            todoList.appendChild(div);
+          });
+        }
+        return;
+      }
+
+      let allList = [...todos];
+      if (filterCate !== 'all') {
+        allList = allList.filter(item => item.type === filterCate);
+        let cateGroup = { [filterCate]: allList };
+        renderCateGroup(cateGroup);
+      } else {
+        let cateGroup = {};
+        categories.forEach(c => {
+          cateGroup[c] = allList.filter(item => item.type === c);
+        });
+        renderCateGroup(cateGroup);
+      }
+    }
+
+    function renderCateGroup(cateGroup) {
+      let hasData = false;
+      for (let c in cateGroup) {
+        let list = cateGroup[c];
+        if (list.length === 0) continue;
+        hasData = true;
+
+        let cateTitle = document.createElement('div');
+        cateTitle.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;margin-top:10px;background:#f5f5f5;border-radius:6px;cursor:pointer;';
+
+        let arrow = document.createElement('span');
+        arrow.style.cssText = 'transition: transform 0.2s ease; display: inline-block;';
+        arrow.textContent = cateExpand[c] ? '▼' : '▶';
+        if (cateExpand[c]) arrow.style.transform = 'rotate(0deg)';
+        else arrow.style.transform = 'rotate(90deg)';
+
+        let text = document.createElement('b');
+        text.textContent = `${c} (${list.length})`;
+
+        cateTitle.appendChild(arrow);
+        cateTitle.appendChild(text);
+        todoList.appendChild(cateTitle);
+
+        cateTitle.onclick = () => {
+          cateExpand[c] = !cateExpand[c];
+          arrow.style.transform = cateExpand[c] ? 'rotate(0deg)' : 'rotate(90deg)';
+          setTimeout(() => { render(); }, 200);
+        };
+
+        if (!cateExpand[c]) continue;
+
+        list.sort((a, b) => (a.prio || 2) - (b.prio || 2));
+        list.forEach(item => {
+          let now = new Date().getTime();
+          let deadlineTime = item.deadline ? new Date(item.deadline).getTime() : 0;
+          let isOverdue = !item.done && item.deadline && now > deadlineTime;
+          let color = item.prio === 1 ? 'red' : item.prio === 2 ? 'gold' : 'green';
+
+          let div = document.createElement('div');
+          div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;margin:4px 0 4px 20px;background:' + (isOverdue ? '#ffebee' : '#fff') + ';border-left:4px solid ' + color + ';border-radius:8px;position:relative;z-index:1;';
+
+          let deadlineText = item.deadline ? new Date(item.deadline).toLocaleString() : '';
+          let overdueTag = isOverdue ? '<span style="color:red;font-weight:bold;margin-left:8px">【逾期】</span>' : '';
+
+          div.innerHTML = `<input type="checkbox" ${item.done ? 'checked' : ''} data-id="${item.id}"><div style="flex:1" data-id="${item.id}"><b>[${item.type}]</b> ${item.content}<span style="font-size:12px;color:#666;margin-left:8px">${deadlineText}</span>${overdueTag}</div><button data-id="${item.id}">删除</button>`;
+          todoList.appendChild(div);
+        });
+      }
+      if (!hasData) todoList.innerHTML = defaultHTML;
+    }
+
+    function updateFooter(num) {
+      if (remainingCount) remainingCount.textContent = num;
+    }
+
+    function bindEvents() {
+      // ✅ 回车键提交任务（唯一新增）
+      todoInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitBtn.click();
+        }
+      });
+
+      submitBtn.onclick = function () {
+        let content = todoInput.value.trim();
+        if (!content) return;
+        let prio = prompt('优先级 1高 2中 3低', 2);
+        let deadline = prompt('截止时间（例：2025-04-01 12:00）');
+        todos.unshift({
+          id: Date.now(),
+          content: content,
+          type: typeSelect.value,
+          prio: Number(prio) || 2,
+          done: false,
+          deadline: deadline,
+          alerted: false
+        });
+        todoInput.value = '';
+        save();
+        render();
+      };
+
+      todoList.onclick = function (e) {
+        let id = e.target.dataset.id;
+        if (!id) return;
+        if (e.target.type == 'checkbox') {
+          let item = todos.find(i => i.id == id);
+          if (item) { item.done = e.target.checked; save(); render(); }
+        }
+        if (e.target.tagName == 'BUTTON') {
+          if (currentView == 'all') {
+            let item = todos.find(i => i.id == id);
+            recycleBin.push(item);
+            todos = todos.filter(i => i.id != id);
+          } else {
+            let item = recycleBin.find(i => i.id == id);
+            todos.unshift(item);
+            recycleBin = recycleBin.filter(i => i.id != id);
+          }
+          save();
+          render();
+        }
+      };
+
+      todoList.ondblclick = function (e) {
+        let item = todos.find(i => i.id == e.target.closest('[data-id]').dataset.id);
+        if (!item) return;
+        let oldDeadline = item.deadline;
+        let text = prompt('修改内容', item.content);
+        let newDeadline = prompt('修改截止时间', item.deadline);
+        if (text) item.content = text;
+        if (newDeadline !== null) {
+          item.deadline = newDeadline;
+          if (newDeadline !== oldDeadline) {
+            item.alerted = false;
+          }
+        }
+        save();
+        render();
+      };
+
+      markAllBtn.onclick = function () {
+        todos.forEach(i => i.done = true);
+        save();
+        render();
+      };
+
+      clearAllBtn.onclick = function () {
+        if (currentView == 'all') {
+          recycleBin.push(...todos);
+          todos = [];
+        } else {
+          recycleBin = [];
+        }
+        save();
+        render();
+      };
+
+      showAllBtn.onclick = () => { currentView = 'all'; filterCate = 'all'; render(); }
+      showRecycleBtn.onclick = () => { currentView = 'recycle'; render(); }
+    }
+
+    function checkOverdue() {
+      let now = new Date().getTime();
+      todos.forEach(item => {
+        if (!item.done && item.deadline) {
+          let d = new Date(item.deadline).getTime();
+          if (now > d && !item.alerted) {
+            alert('⚠️ 任务逾期：' + item.content);
+            item.alerted = true;
+            save();
+          }
+        }
+      });
+    }
+
+    function save() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+      localStorage.setItem('recycleBin', JSON.stringify(recycleBin));
+      localStorage.setItem('categories', JSON.stringify(categories));
+      localStorage.setItem('cateExpand', JSON.stringify(cateExpand));
+    }
+
+    function addCate() {
+      let n = prompt('分类名');
+      if (n && !categories.includes(n)) { categories.push(n); cateExpand[n] = true; renderCate(); save(); render(); }
+    }
+    function editCate() {
+      let o = prompt('原分类'); let n = prompt('新名称');
+      if (o && n && categories.includes(o) && !categories.includes(n)) {
+        categories = categories.map(c => c == o ? n : c); cateExpand[n] = cateExpand[o]; delete cateExpand[o];
+        todos.forEach(t => { if (t.type == o) t.type = n; }); renderCate(); save(); render();
+      }
+    }
+    function delCate() {
+      let c = prompt('删除分类');
+      if (c && categories.includes(c)) { categories = categories.filter(x => x !== c); delete cateExpand[c]; todos = todos.filter(t => t.type !== c); renderCate(); save(); render(); }
+    }
+    function filterCateChange(val) { filterCate = val; render(); }
+  </script>
+</body>
+
+</html>
