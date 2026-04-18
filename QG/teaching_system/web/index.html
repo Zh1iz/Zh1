@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教学管理系统</title>
+  <link rel="stylesheet" href="css/common.css">
+</head>
+
+<body>
+  <div class="key">
+    <header class="header">
+      <div class="header-left">
+        <button class="menu" id="menu">☰</button>
+        <h1 class="word">教学管理系统</h1>
+      </div>
+      <div class="header-right">
+        <span class="user-name" id="userName"></span>
+        <span class="user-role" id="userRole"></span>
+        <button id="logoutBtn" class="btn-logout">退出登录</button>
+      </div>
+    </header>
+    <div class="aside-main">
+      <aside class="sider">
+        <nav class="nav">
+          <button class="firstpage" id="firstPage">首页</button>
+          <button class="firstpage" id="classPageBtn">班级管理</button>
+          <button class="firstpage" id="scorePageBtn">成绩管理</button>
+          <button class="firstpage" id="noticePageBtn">班级通知</button>
+          <button class="firstpage" id="logPageBtn">操作日志</button>
+        </nav>
+      </aside>
+      <main class="content-area">
+        <div class="page1" id="page1">
+          <h2>欢迎使用教学管理系统</h2>
+          <p id="welcomeMessage"></p>
+        </div>
+        <div id="classPage" class="page-content" style="display: none;">
+          <div class="page-header">
+            <h2>班级管理</h2>
+            <button class="btn-add" id="addClassBtn">新增班级</button>
+          </div>
+          <div class="class-list" id="classList"></div>
+        </div>
+        <div id="scorePage" class="page-content" style="display: none;">
+          <div class="page-header">
+            <h2>成绩管理</h2>
+            <div class="filter-bar">
+              <select id="filterClass"></select>
+              <input type="text" id="filterCourse" placeholder="科目">
+              <input type="text" id="filterStudent" placeholder="学号">
+              <button class="btn btn-primary" id="searchBtn">查询</button>
+              <button class="btn btn-outline" id="statisticsBtn">统计</button>
+              <button class="btn btn-outline" id="exportBtn">导出</button>
+              <button class="btn btn-outline" id="batchAddScoreBtn">批量导入</button>
+              <input type="file" id="batchFileInput" accept=".csv,.txt,.json" style="display: none;">
+              <button class="btn btn-primary" id="addScoreBtn">录入成绩</button>
+            </div>
+          </div>
+          <div id="scoreList" class="score-list"></div>
+        </div>
+        <div id="noticePage" class="page-content" style="display:none">
+          <div class="page-header">
+            <h2>班级通知</h2><button class="btn-notice" id="addNoticeBtn">发布通知</button>
+          </div>
+          <div id="noticeList"></div>
+        </div>
+        <div id="logPage" class="page-content" style="display:none">
+          <div class="page-header">
+            <h2>操作日志</h2>
+          </div>
+          <div id="logList"></div>
+        </div>
+      </main>
+    </div>
+    <div class="windowcover" id="studentWindow" style="display: none;">
+      <div class="window-content">
+        <div class="window-header">
+          <h3 id="windowClassName">班级名称</h3>
+          <button class="window-close">&times;</button>
+        </div>
+        <div class="window-body">
+          <button class="btn-supple" id="addStudentBtn">补录学生</button>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>学号</th>
+                <th>姓名</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="studentList"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="windowcover" id="scoreWindow" style="display: none;">
+      <div class="window-content">
+        <div class="window-header">
+          <h3>录入成绩</h3>
+          <button class="window-close" id="scoreWindowClose">&times;</button>
+        </div>
+        <div class="window-body">
+          <div class="form-group">
+            <label>学号</label>
+            <input type="text" id="scoreStudentId" placeholder="请输入学号">
+          </div>
+          <div class="form-group">
+            <label>科目</label>
+            <input type="text" id="scoreCourse" placeholder="请输入科目">
+          </div>
+          <div class="form-group">
+            <label>成绩</label>
+            <input type="number" id="scoreValue" placeholder="0-100">
+          </div>
+          <button class="btn-save" id="saveScoreBtn">保存</button>
+        </div>
+      </div>
+    </div>
+    <div class="windowcover" id="statisticsWindow" style="display: none;">
+      <div class="window-content">
+        <div class="window-header">
+          <h3>成绩统计</h3>
+          <button class="window-close" id="statsWindowClose">&times;</button>
+        </div>
+        <div class="window-body" id="statisticsContent"></div>
+      </div>
+    </div>
+    <div class="window" id="noticeWindow" style="display:none">
+      <div class="window-content">
+        <div class="window-header">
+          <h3 id="noticeWindowTitle">发布通知</h3><button class="window-close" id="noticeWindowClose">&times;</button>
+        </div>
+        <div class="window-body">
+          <div class="form-group"><label>标题</label><input id="noticeTitle"></div>
+          <div class="form-group"><label>内容</label><textarea id="noticeContent" rows="5"></textarea></div>
+          <button class="btn-publish" id="saveNoticeBtn">发布</button>
+        </div>
+      </div>
+    </div>
+    <div class="window" id="readStatusWindow" style="display:none">
+      <div class="window-content">
+        <div class="window-header">
+          <h3>已读/未读名单</h3><button class="window-close" id="readStatusClose">&times;</button>
+        </div>
+        <div class="window-body">
+          <h4>已读</h4>
+          <ul id="readList"></ul>
+          <h4>未读</h4>
+          <ul id="unreadList"></ul>
+        </div>
+      </div>
+      <div class="window" id="noticeDetailWindow" style="display: none;">
+        <div class="window-content">
+          <div class="window-header">
+            <h3 id="noticeDetailTitle"></h3>
+            <button class="window-close" id="noticeDetailClose">&times;</button>
+          </div>
+          <div class="window-body">
+            <div class="notice-meta" id="noticeDetailMeta"></div>
+            <p id="noticeDetailContent"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/request.js"></script>
+    <script src="js/modules/class.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/modules/score.js"></script>
+    <script src="js/modules/notice.js"></script>
+    <script src="js/modules/log.js"></script>
+    <script>
+      if (!auth.isAuthenticated()) location.href = 'login.html';
+      const user = auth.getUser();
+      document.getElementById('userName').textContent = user.name;
+      const roleMap = { 'admin': '教导主任', 'teacher': '班主任', 'student': '学生' };
+      document.getElementById('userRole').textContent = roleMap[user.role] || user.role;
+      document.getElementById('welcomeMessage').textContent = `${user.name}(${roleMap[user.role]})，欢迎回来！`;
+
+      if (user.role !== 'admin') {
+        document.getElementById('classPageBtn').style.display = 'none';
+        document.getElementById('logPageBtn').style.display = 'none';
+      }
+      if (user.role === 'student') {
+        document.getElementById('scorePageBtn').textContent = '我的成绩';
+        document.getElementById('addScoreBtn')?.remove();
+      }
+
+      document.getElementById('menu').onclick = () => document.querySelector('.sider').classList.toggle('open');
+      document.querySelector('.content-area').onclick = () => document.querySelector('.sider').classList.remove('open');
+      document.getElementById('logoutBtn').onclick = () => { if (confirm('退出登录？')) auth.logout(); };
+
+      const pages = { firstPage: 'page1', classPageBtn: 'classPage', scorePageBtn: 'scorePage', noticePageBtn: 'noticePage', logPageBtn: 'logPage' };
+      document.querySelectorAll('.firstpage').forEach(btn => {
+        btn.onclick = function () {
+          document.querySelectorAll('.firstpage').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          Object.values(pages).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          });
+          const pageId = pages[this.id];
+          if (pageId) document.getElementById(pageId).style.display = 'block';
+          if (this.id === 'classPageBtn') window.classModule?.init();
+          if (this.id === 'scorePageBtn') window.scoreModule?.init();
+          if (this.id === 'noticePageBtn') window.noticeModule?.init();
+          if (this.id === 'logPageBtn') window.logModule?.init();
+          if (innerWidth <= 768) document.querySelector('.sider').classList.remove('open');
+        };
+      });
+    </script>
+</body>
+
+</html>
